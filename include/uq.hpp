@@ -23,6 +23,9 @@ SOFTWARE.
 */
 #include <cmath>
 #include <cstdio>
+#ifndef _FIXED_POINT_UQ_H_
+    #error Please do not include this header directly; include uq.h
+#endif
 /*==============================================================================
  *   Helper functions
  *=============================================================================/
@@ -139,16 +142,16 @@ template<unsigned f, typename I>
 fp::uq<f, I> fp::uq<f, I>::operator / (uq<f, I> b) const
 {
     unsigned lz=fixed_point_internal::clz(b.q);
-    I d=b.q<<lz;
-    uq<sizeof(I)*8, I> e;
-    e.q=~d+1;
+    I d=(b.q<<lz);//0x80000000-0xFFFFFFFF
+    uq<sizeof(I)*8+1, I> e;/*Must always be below 0.5*/
+    e.q=(~d+1)<<1;
     uq<sizeof(I)*8-1, I> q(1);
-    for(unsigned i=0;i<5;++i)/*TODO: fix loop length, a formula exists*/
+    for(unsigned i=0;i<7;++i)/*TODO: fix loop length, a formula exists*/
     {
         q=q+q*e;
         e=e*e;
     }
     uq<f, I> r;
-    r.q=fixed_point_internal::no_overflow_mul_rsh<sizeof(I)*8-f-1>(q.q>>(sizeof(I)*8-lz), this->q);
+    r.q=fixed_point_internal::no_overflow_mul_rsh<sizeof(I)*8-f-1>(q.q>>(sizeof(I)*8-lz-(d==((I)1<<(sizeof(I)*8-1)))), this->q);
     return r;
 }
