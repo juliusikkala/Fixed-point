@@ -146,7 +146,7 @@ fp::uq<f, I> fp::uq<f, I>::operator / (uq<f, I> b) const
     uq<sizeof(I)*8+1, I> e;/*Must always be below 0.5*/
     e.q=(~d+1)<<1;
     uq<sizeof(I)*8-1, I> q(1);
-    for(unsigned i=0;i<7;++i)/*TODO: fix loop length, a formula exists*/
+    for(unsigned i=0;i<sizeof(I)-1;++i)
     {
         q=q+q*e;
         e=e*e;
