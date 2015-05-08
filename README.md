@@ -15,14 +15,15 @@ consider using fixed-point numbers. **This library is not meant for embedded dev
 _only_ when you need constant resolution and high precision and performance is not an issue.
 
 ##Example
-
-    #include "q.h"
-    ...
-    fp::q<17, int64_t> a(18.12);/*17 fractional bits, signed*/
-    fp::q<17, int64_t> b(1.2339);
-    /*This should print the value. Notice that it isn't exactly correct, the
-      precision is limited by the number of fractional bits, and every division and
-      multiplication may cause rounding errors, again, due to the number of
-      fractional bits.*/
-    printf("%f\n", (double)((a+b)/(a-b)*b));
-    ...
+```c++
+#include "q.h"
+...
+fp::q<17, int64_t> a(18.12);/*17 fractional bits, signed*/
+fp::q<17, int64_t> b(1.2339);
+/*This should print the value. Notice that it isn't exactly correct, the
+  precision is limited by the number of fractional bits, and every division and
+  multiplication may cause rounding errors, again, due to the number of
+  fractional bits.*/
+printf("%f\n", (double)((a+b)/(a-b)*b));
+...
+```
