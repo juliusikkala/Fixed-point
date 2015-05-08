@@ -24,6 +24,7 @@ SOFTWARE.
 #ifndef FIXED_POINT_INTERNAL_H_
 #define FIXED_POINT_INTERNAL_H_
     #include <type_traits>
+    #include <cmath>
     /*Ridiculously long name to avoid namespace clashes*/
     namespace fixed_point_internal
     {
@@ -59,10 +60,20 @@ SOFTWARE.
         {
             return shifter<shift, (shift>=0), (std::abs(shift)>=sizeof(T)*8), T>::op(x);
         }
+        template<typename T>
+        T signed_rsh(T x, int shift)
+        {
+            return std::abs(shift)<sizeof(T)*8?(shift<0?x<<-shift:x>>shift):0;
+        }
         template<int shift, typename T>
         T signed_lsh(T x)
         {
             return signed_rsh<-shift, T>(x);
+        }
+        template<typename T>
+        T signed_lsh(T x, int shift)
+        {
+            return std::abs(shift)<sizeof(T)*8?(shift<0?x>>-shift:x<<shift):0;
         }
         template<int shift, typename T>
         T no_overflow_mul_rsh(T a, T b)
@@ -77,6 +88,20 @@ SOFTWARE.
                    signed_rsh<shift-bits/2>(a1*b2)+
                    signed_rsh<shift-bits/2>(a2*b1)+
                    signed_rsh<shift>(a2*b2);
+        }
+        template<typename T>
+        T no_overflow_mul_rsh(T a, T b, int shift)
+        {
+            static const int bits=sizeof(T)*8;
+            static const T lowmask=(((T)1)<<(bits/2))-1;
+            T a1=a>>bits/2;
+            T a2=a&lowmask;
+            T b1=b>>bits/2;
+            T b2=b&lowmask;
+            return signed_rsh(a1*b1, shift-bits)+
+                   signed_rsh(a1*b2, shift-bits/2)+
+                   signed_rsh(a2*b1, shift-bits/2)+
+                   signed_rsh(a2*b2, shift);
         }
     }
 #endif

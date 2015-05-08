@@ -92,9 +92,10 @@ fp::q<f, I> fp::q<f, I>::operator / (q<f, I> b) const
         e=e*e;
     }
     q<f, I> t;
-    t.i=fixed_point_internal::no_overflow_mul_rsh<sizeof(I)*8-f-1>(
-        r.i>>(sizeof(I)*8-lz-(d==msb)),
-        (typename std::make_unsigned<I>::type)(this->i<0?-this->i:this->i)
+    t.i=fixed_point_internal::no_overflow_mul_rsh(
+        r.i,
+        (typename std::make_unsigned<I>::type)(this->i<0?-this->i:this->i),
+        sizeof(i)*16-f-lz-(d==msb)-1
     );
     t.i=(b.i^this->i)&msb?-t.i:t.i;
     return t;
