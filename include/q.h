@@ -22,30 +22,46 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef _FIXED_POINT_UQ_H_
-#define _FIXED_POINT_UQ_H_
+#ifndef FIXED_POINT_Q_H_
+#define FIXED_POINT_Q_H_
     #include <cstdint>
+    #include <type_traits>
     namespace fp
     {
         template<unsigned f, typename I>
-        struct uq
+        struct q
         {
-            I q;
+            I i;
             
-            uq(double d);
-            uq(long double d);
-            uq(long unsigned u);
-            uq(int u=0);/*Integer literals are int*/
+            q(double d);
+            q(long double d);
+            q(int u=0);/*Integer literals are int*/
             operator long double() const;
-            uq<f, I> operator + (uq<f, I> b) const;
-            uq<f, I> operator - (uq<f, I> b) const;
+            q<f, I> operator + (q<f, I> b) const;
+            q<f, I> operator - (q<f, I> b) const;
             template<unsigned fb>
-            uq<f, I> operator * (uq<fb, I> b) const;
-            uq<f, I> operator / (uq<f, I> b) const;
+            q<f, I> operator * (q<fb, I> b) const;
+            q<f, I> operator / (q<f, I> b) const;
+            q<f, I> operator - () const;
+            
+            bool operator >= (q<f, I> b) const;
+            bool operator > (q<f, I> b) const;
+            bool operator <= (q<f, I> b) const;
+            bool operator < (q<f, I> b) const;
+            bool operator == (q<f, I> b) const;
+            bool operator != (q<f, I> b) const;
         };
-        typedef uq<16, uint32_t> UQ16_16;
-        typedef uq<32, uint64_t> UQ32_32;
-        typedef uq<16, uint64_t> UQ48_16;
+        typedef q<16, uint32_t> UQ16_16;
+        typedef q<32, uint64_t> UQ32_32;
+        typedef q<16, uint64_t> UQ48_16;
+        typedef q<16, int32_t> Q16_16;
+        typedef q<32, int64_t> Q32_32;
+        typedef q<16, int64_t> Q48_16;
+        
+        /*Returns the absolute value of x, returns the number unchanged if it's
+          type is unsigned.*/
+        template<unsigned f, typename I>
+        q<f, I> abs(q<f, I> x);
     }
-    #include "uq.hpp"
+    #include "q.hpp"
 #endif
