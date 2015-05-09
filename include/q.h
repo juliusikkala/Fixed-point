@@ -33,23 +33,38 @@ SOFTWARE.
         {
             I i;
             
+            q(int u=0);/*Integer literals are int*/
             q(double d);
             q(long double d);
-            q(int u=0);/*Integer literals are int*/
+            template<unsigned fb>
+            q(q<fb, I> a);
+            
             operator long double() const;
-            q<f, I> operator + (q<f, I> b) const;
-            q<f, I> operator - (q<f, I> b) const;
+            template<unsigned fb>
+            q<f, I> operator + (q<fb, I> b) const;
+            template<unsigned fb>
+            q<f, I> operator - (q<fb, I> b) const;
             template<unsigned fb>
             q<f, I> operator * (q<fb, I> b) const;
-            q<f, I> operator / (q<f, I> b) const;
-            q<f, I> operator - () const;
+            template<unsigned fb>
+            q<f, I> operator / (q<fb, I> b) const;
             
-            bool operator >= (q<f, I> b) const;
-            bool operator > (q<f, I> b) const;
-            bool operator <= (q<f, I> b) const;
-            bool operator < (q<f, I> b) const;
-            bool operator == (q<f, I> b) const;
-            bool operator != (q<f, I> b) const;
+            q<f, I> operator - () const;
+            template<unsigned fb>
+            q<f, I> operator % (q<fb, I> b) const;
+            
+            template<unsigned fb>
+            bool operator >= (q<fb, I> b) const;
+            template<unsigned fb>
+            bool operator > (q<fb, I> b) const;
+            template<unsigned fb>
+            bool operator <= (q<fb, I> b) const;
+            template<unsigned fb>
+            bool operator < (q<fb, I> b) const;
+            template<unsigned fb>
+            bool operator == (q<fb, I> b) const;
+            template<unsigned fb>
+            bool operator != (q<fb, I> b) const;
         };
         typedef q<16, uint32_t> UQ16_16;
         typedef q<32, uint64_t> UQ32_32;

@@ -26,7 +26,7 @@ SOFTWARE.
     #include <type_traits>
     #include <cmath>
     /*Ridiculously long name to avoid namespace clashes*/
-    namespace fixed_point_internal
+    namespace fp_internal
     {
         template<typename T>
         unsigned clz(T x)
@@ -58,7 +58,9 @@ SOFTWARE.
         template<int shift, typename T>
         T signed_rsh(T x)
         {
-            return shifter<shift, (shift>=0), (std::abs(shift)>=sizeof(T)*8), T>::op(x);
+            return shifter<
+                shift, (shift>=0), (std::abs(shift)>=sizeof(T)*8), T
+            >::op(x);
         }
         template<typename T>
         T signed_rsh(T x, int shift)
