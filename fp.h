@@ -31,6 +31,8 @@ SOFTWARE.
     //==========================================================================
     namespace fp
     {
+        /*The fixed-point number class. f is the amount of fractional bits, I is
+          the internal type. If I is signed, q will be signed.*/
         template<unsigned f, typename I>
         struct q
         {
@@ -76,17 +78,16 @@ SOFTWARE.
         typedef q<32, int64_t> Q32_32;
         typedef q<16, int64_t> Q48_16;
         
-        /*Returns the absolute value of x, returns the number unchanged if it's
-          type is unsigned.*/
+        /*Returns the absolute value of x*/
         template<unsigned f, typename I>
         q<f, I> abs(q<f, I> x);
     }
     //==========================================================================
     //Internal helper functions and classes
     //==========================================================================
-    /*Ridiculously long name to avoid namespace clashes*/
     namespace fp_internal
     {
+        /*Count leading zeroes*/
         template<typename T>
         unsigned clz(T x)
         {
@@ -94,6 +95,7 @@ SOFTWARE.
             while(!(x&(((T)1)<<(sizeof(T)*8-1)))&&(x<<=1)) ++i;
             return i;
         }
+        /*Used to select the correct shift operator in compile-time*/
         template<int shift, bool rsh, bool zero, typename T>
         struct shifter
         {
@@ -114,6 +116,8 @@ SOFTWARE.
         {
             static T op(T x){return 0;};
         };
+        /*Signed right shift. Accepts negative values of shift and never
+          complains about too big shifts. Compile-time version.*/
         template<int shift, typename T>
         T signed_rsh(T x)
         {
@@ -121,23 +125,28 @@ SOFTWARE.
                 shift, (shift>=0), (std::abs(shift)>=sizeof(T)*8), T
             >::op(x);
         }
+        /*Signed right shift, run time version.*/
         template<typename T>
         T signed_rsh(T x, int shift)
         {
             return std::abs(shift)<sizeof(T)*8?(shift<0?x<<-shift:x>>shift):0;
         }
+        /*Signed left shift, compile-time version*/
         template<int shift, typename T>
         T signed_lsh(T x)
         {
             return signed_rsh<-shift, T>(x);
         }
+        /*Signed left shift, run time version*/
         template<typename T>
         T signed_lsh(T x, int shift)
         {
             return std::abs(shift)<sizeof(T)*8?(shift<0?x>>-shift:x<<shift):0;
         }
+        /*Multiplies and simultaneously right-shifts the argument values,
+          without losing the high bits. Compile-time version*/
         template<int shift, typename T>
-        T no_overflow_mul_rsh(T a, T b)
+        T mul_rsh(T a, T b)
         {
             static const int bits=sizeof(T)*8;
             static const T lowmask=(((T)1)<<(bits/2))-1;
@@ -150,8 +159,9 @@ SOFTWARE.
                    signed_rsh<shift-bits/2>(a2*b1)+
                    signed_rsh<shift>(a2*b2);
         }
+        /*Run time version*/
         template<typename T>
-        T no_overflow_mul_rsh(T a, T b, int shift)
+        T mul_rsh(T a, T b, int shift)
         {
             static const int bits=sizeof(T)*8;
             static const T lowmask=(((T)1)<<(bits/2))-1;
@@ -220,7 +230,7 @@ SOFTWARE.
     fp::q<f, I> fp::q<f, I>::operator * (q<fb, I> b) const
     {
         q<f, I> t;
-        t.i=fp_internal::no_overflow_mul_rsh<fb>(i, b.i);
+        t.i=fp_internal::mul_rsh<fb>(i, b.i);
         return t;
     }
     template<unsigned f, typename I>
@@ -243,7 +253,7 @@ SOFTWARE.
             e=e*e;
         }
         q<f, I> t;
-        t.i=fp_internal::no_overflow_mul_rsh(//adjust the radix point of (this*r)
+        t.i=fp_internal::mul_rsh(//adjust the radix point of (this*r)
             r.i,
             (typename std::make_unsigned<I>::type)(this->i<0?-this->i:this->i),
             sizeof(i)*16-fb-lz-(d==msb)-1
