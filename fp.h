@@ -38,7 +38,9 @@ SOFTWARE.
         {
             I i;
             
-            q(int u=0);/*Integer literals are int*/
+            q(int i=0);/*Integer literals are int*/
+            q(unsigned u);
+            q(size_t s);
             q(double d);
             q(long double d);
             template<unsigned fb>
@@ -55,10 +57,21 @@ SOFTWARE.
             q<f, I> operator * (q<fb, I> b) const;
             template<unsigned fb>
             q<f, I> operator / (q<fb, I> b) const;
-            
-            q<f, I> operator - () const;
             template<unsigned fb>
             q<f, I> operator % (q<fb, I> b) const;
+            
+            template<typename T>
+            q<f, I> operator + (T b) const;
+            template<typename T>
+            q<f, I> operator - (T b) const;
+            template<typename T>
+            q<f, I> operator * (T b) const;
+            template<typename T>
+            q<f, I> operator / (T b) const;
+            template<typename T>
+            q<f, I> operator % (T b) const;
+            
+            q<f, I> operator - () const;
             
             template<unsigned fb>
             q<f, I> & operator = (q<fb, I> b);
@@ -156,7 +169,6 @@ SOFTWARE.
         template<int shift, typename T>
         T mul_rsh(T a, T b)
         {
-            static const T msb=(T)1<<(sizeof(T)*8-1);
             static const int bits=sizeof(T)*8;
             static const T lowmask=(((T)1)<<(bits/2))-1;
             typedef typename std::make_unsigned<T>::type U;
@@ -170,13 +182,12 @@ SOFTWARE.
                   signed_rsh<shift-bits/2>(a1*b2)+
                   signed_rsh<shift-bits/2>(a2*b1)+
                   signed_rsh<shift>(a2*b2);
-            return (a^b)&msb?-((T)res):(T)res;
+            return (a<0)^(b<0)?-((T)res):(T)res;
         }
         /*Run time version*/
         template<typename T>
         T mul_rsh(T a, T b, int shift)
         {
-            static const T msb=(T)1<<(sizeof(T)*8-1);
             static const int bits=sizeof(T)*8;
             static const T lowmask=(((T)1)<<(bits/2))-1;
             typedef typename std::make_unsigned<T>::type U;
@@ -190,7 +201,7 @@ SOFTWARE.
                   signed_rsh(a1*b2, shift-bits/2)+
                   signed_rsh(a2*b1, shift-bits/2)+
                   signed_rsh(a2*b2, shift);
-            return (a^b)&msb?-((T)res):(T)res;
+            return (a<0)^(b<0)?-((T)res):(T)res;
         }
     }
     //==========================================================================
@@ -200,6 +211,16 @@ SOFTWARE.
     fp::q<f, I>::q(int u)
     {
         i=fp_internal::signed_lsh<f>((I)u);
+    }
+    template<unsigned f, typename I>
+    fp::q<f, I>::q(unsigned u)
+    {
+        i=fp_internal::signed_lsh<f>((I)u);
+    }
+    template<unsigned f, typename I>
+    fp::q<f, I>::q(size_t s)
+    {
+        i=fp_internal::signed_lsh<f>((I)s);
     }
     template<unsigned f, typename I>
     fp::q<f, I>::q(double d)
@@ -280,19 +301,12 @@ SOFTWARE.
             e=e*e;
         }
         q<f, I> t;
-        t.i=fp_internal::mul_rsh(//adjust the radix point of (this*r)
+        t.i=(I)fp_internal::mul_rsh(//adjust the radix point of (this*r)
             r.i,
             (typename std::make_unsigned<I>::type)(this->i<0?-this->i:this->i),
             sizeof(i)*16-fb-lz-(d==msb)-1
         );
-        t.i=(b.i^this->i)&msb?-t.i:t.i;//set correct sign
-        return t;
-    }
-    template<unsigned f, typename I>
-    fp::q<f, I> fp::q<f, I>::operator - () const
-    {
-        q<f, I> t;
-        t.i=-i;
+        t.i=(b.i<0)^(this->i<0)?-t.i:t.i;//set correct sign
         return t;
     }
     template<unsigned f, typename I>
@@ -301,6 +315,29 @@ SOFTWARE.
     {
         q<f, I> t;
         t.i=i%fp_internal::signed_rsh<fb-f>(b.i);
+        return t;
+    }
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> fp::q<f, I>::operator + (T b) const{return *this+q<f, I>(b);}
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> fp::q<f, I>::operator - (T b) const{return *this-q<f, I>(b);}
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> fp::q<f, I>::operator * (T b) const{return *this*q<f, I>(b);}
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> fp::q<f, I>::operator / (T b) const{return *this/q<f, I>(b);}
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> fp::q<f, I>::operator % (T b) const{return *this%q<f, I>(b);}
+    
+    template<unsigned f, typename I>
+    fp::q<f, I> fp::q<f, I>::operator - () const
+    {
+        q<f, I> t;
+        t.i=-i;
         return t;
     }
     template<unsigned f, typename I>
