@@ -71,6 +71,17 @@ SOFTWARE.
             template<typename T>
             q<f, I> operator % (T b) const;
             
+            template<typename T>
+            q<f, I> & operator += (T b);
+            template<typename T>
+            q<f, I> & operator -= (T b);
+            template<typename T>
+            q<f, I> & operator *= (T b);
+            template<typename T>
+            q<f, I> & operator /= (T b);
+            template<typename T>
+            q<f, I> & operator %= (T b);
+            
             q<f, I> operator - () const;
             
             template<unsigned fb>
@@ -332,6 +343,22 @@ SOFTWARE.
     template<unsigned f, typename I>
     template<typename T>
     fp::q<f, I> fp::q<f, I>::operator % (T b) const{return *this%q<f, I>(b);}
+    
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> & fp::q<f, I>::operator += (T b){return *this=*this+b;}
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> & fp::q<f, I>::operator -= (T b){return *this=*this-b;}
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> & fp::q<f, I>::operator *= (T b){return *this=*this*b;}
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> & fp::q<f, I>::operator /= (T b){return *this=*this/b;}
+    template<unsigned f, typename I>
+    template<typename T>
+    fp::q<f, I> & fp::q<f, I>::operator %= (T b){return *this=*this%b;}
     
     template<unsigned f, typename I>
     fp::q<f, I> fp::q<f, I>::operator - () const
