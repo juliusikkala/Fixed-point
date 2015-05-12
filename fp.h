@@ -470,6 +470,6 @@ SOFTWARE.
     template<unsigned f, typename I>
     fp::q<f, I> fp::abs(q<f, I> x)
     {
-        return (x.q>=0?x:-x);
+        return (x.i>=0?x:-x);
     }
 #endif
