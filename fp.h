@@ -44,6 +44,8 @@ SOFTWARE.
             template<unsigned fb>
             q(q<fb, I> a);
             
+            operator int() const;
+            operator double() const;
             operator long double() const;
             template<unsigned fb>
             q<f, I> operator + (q<fb, I> b) const;
@@ -220,11 +222,20 @@ SOFTWARE.
         i=fp_internal::signed_rsh<fb-f>(a.i);
     }
     template<unsigned f, typename I>
+    fp::q<f, I>::operator int() const
+    {
+        return fp_internal::signed_rsh<f>(i);
+    }
+    template<unsigned f, typename I>
+    fp::q<f, I>::operator double() const
+    {
+        return ldexp((double)i, -(int)f);
+    }
+    template<unsigned f, typename I>
     fp::q<f, I>::operator long double() const
     {
         return ldexp((long double)i, -(int)f);
     }
-
     template<unsigned f, typename I>
     template<unsigned fb>
     fp::q<f, I> fp::q<f, I>::operator + (q<fb, I> b) const
