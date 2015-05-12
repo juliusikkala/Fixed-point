@@ -40,7 +40,7 @@ SOFTWARE.
             
             q(int i=0);/*Integer literals are int*/
             q(unsigned u);
-            q(size_t s);
+            q(uintmax_t s);
             q(double d);
             q(long double d);
             template<unsigned fb>
@@ -218,7 +218,7 @@ SOFTWARE.
         i=fp_internal::signed_lsh<f>((I)u);
     }
     template<unsigned f, typename I>
-    fp::q<f, I>::q(size_t s)
+    fp::q<f, I>::q(uintmax_t s)
     {
         i=fp_internal::signed_lsh<f>((I)s);
     }
