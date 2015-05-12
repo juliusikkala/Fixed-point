@@ -59,6 +59,12 @@ SOFTWARE.
             q<f, I> operator % (q<fb, I> b) const;
             
             template<unsigned fb>
+            q<f, I> & operator = (q<fb, I> b);
+            q<f, I> & operator = (int b);
+            q<f, I> & operator = (double b);
+            q<f, I> & operator = (long double b);
+            
+            template<unsigned fb>
             bool operator >= (q<fb, I> b) const;
             template<unsigned fb>
             bool operator > (q<fb, I> b) const;
@@ -148,31 +154,41 @@ SOFTWARE.
         template<int shift, typename T>
         T mul_rsh(T a, T b)
         {
+            static const T msb=(T)1<<(sizeof(T)*8-1);
             static const int bits=sizeof(T)*8;
             static const T lowmask=(((T)1)<<(bits/2))-1;
-            T a1=a>>bits/2;
-            T a2=a&lowmask;
-            T b1=b>>bits/2;
-            T b2=b&lowmask;
-            return signed_rsh<shift-bits>(a1*b1)+
-                   signed_rsh<shift-bits/2>(a1*b2)+
-                   signed_rsh<shift-bits/2>(a2*b1)+
-                   signed_rsh<shift>(a2*b2);
+            typedef typename std::make_unsigned<T>::type U;
+            U abs_a=a>=0?a:-a;
+            U abs_b=b>=0?b:-b;
+            U a1=abs_a>>bits/2;
+            U a2=abs_a&lowmask;
+            U b1=abs_b>>bits/2;
+            U b2=abs_b&lowmask;
+            U res=signed_rsh<shift-bits>(a1*b1)+
+                  signed_rsh<shift-bits/2>(a1*b2)+
+                  signed_rsh<shift-bits/2>(a2*b1)+
+                  signed_rsh<shift>(a2*b2);
+            return (a^b)&msb?-((T)res):(T)res;
         }
         /*Run time version*/
         template<typename T>
         T mul_rsh(T a, T b, int shift)
         {
+            static const T msb=(T)1<<(sizeof(T)*8-1);
             static const int bits=sizeof(T)*8;
             static const T lowmask=(((T)1)<<(bits/2))-1;
-            T a1=a>>bits/2;
-            T a2=a&lowmask;
-            T b1=b>>bits/2;
-            T b2=b&lowmask;
-            return signed_rsh(a1*b1, shift-bits)+
-                   signed_rsh(a1*b2, shift-bits/2)+
-                   signed_rsh(a2*b1, shift-bits/2)+
-                   signed_rsh(a2*b2, shift);
+            typedef typename std::make_unsigned<T>::type U;
+            U abs_a=a>=0?a:-a;
+            U abs_b=b>=0?b:-b;
+            U a1=abs_a>>bits/2;
+            U a2=abs_a&lowmask;
+            U b1=abs_b>>bits/2;
+            U b2=abs_b&lowmask;
+            U res=signed_rsh(a1*b1, shift-bits)+
+                  signed_rsh(a1*b2, shift-bits/2)+
+                  signed_rsh(a2*b1, shift-bits/2)+
+                  signed_rsh(a2*b2, shift);
+            return (a^b)&msb?-((T)res):(T)res;
         }
     }
     //==========================================================================
@@ -276,7 +292,35 @@ SOFTWARE.
         t.i=i%fp_internal::signed_rsh<fb-f>(b.i);
         return t;
     }
-
+    template<unsigned f, typename I>
+    template<unsigned fb>
+    fp::q<f, I> & fp::q<f, I>::operator = (q<fb, I> b)
+    {
+        i=fp_internal::signed_rsh<fb-f>(b.i);
+        return *this;
+    }
+    template<unsigned f, typename I>
+    fp::q<f, I> & fp::q<f, I>::operator = (int b)
+    {
+        i=fp_internal::signed_lsh<f>((I)b);
+        return *this;
+    }
+    template<unsigned f, typename I>
+    fp::q<f, I> & fp::q<f, I>::operator = (double b)
+    {
+        int exp=0;
+        double tmp=frexp(b, &exp);
+        i=llroundl(ldexp(tmp,exp+f));
+        return *this;
+    }
+    template<unsigned f, typename I>
+    fp::q<f, I> & fp::q<f, I>::operator = (long double b)
+    {
+        int exp=0;
+        long double tmp=frexp(b, &exp);
+        i=llroundl(ldexp(tmp,exp+f));
+        return *this;
+    }
     template<unsigned f, typename I>
     template<unsigned fb>
     bool fp::q<f, I>::operator >= (q<fb, I> b) const
