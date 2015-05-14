@@ -180,39 +180,55 @@ SOFTWARE.
         template<int shift, typename T>
         T mul_rsh(T a, T b)
         {
-            static const int bits=sizeof(T)*8;
-            static const T lowmask=(((T)1)<<(bits/2))-1;
             typedef typename std::make_unsigned<T>::type U;
-            U abs_a=a>=0?a:-a;
-            U abs_b=b>=0?b:-b;
-            U a1=abs_a>>bits/2;
-            U a2=abs_a&lowmask;
-            U b1=abs_b>>bits/2;
-            U b2=abs_b&lowmask;
-            U res=signed_rsh<shift-bits>(a1*b1)+
-                  signed_rsh<shift-bits/2>(a1*b2)+
-                  signed_rsh<shift-bits/2>(a2*b1)+
-                  signed_rsh<shift>(a2*b2);
-            return (a<0)^(b<0)?-((T)res):(T)res;
+            static const int bits=sizeof(T)*8;
+            static const int halfbits=sizeof(T)*4;
+            static const U lowmask=(((T)1)<<(halfbits))-1;
+            static const U highmask=lowmask<<(halfbits);
+            T a1=a>>(halfbits);
+            T a2=a-(a&highmask);
+            T b1=b>>(halfbits);
+            T b2=b-(b&highmask);
+            T a1b1=a1*b1;
+            T a1b2=a1*b2;
+            T a2b1=a2*b1;
+            T a2b2=a2*b2;
+            U high=a1b1+(a2b1>>(halfbits))+(a1b2>>(halfbits));
+
+            U low=a2b2;
+            high+=(low+=(a2b1<<halfbits))<a2b2;
+            U tmp=low;
+            high+=(low+=(a1b2<<halfbits))<tmp;
+            low=signed_rsh<shift>(low);
+            low+=signed_lsh<bits-shift>(high);
+            return low;
         }
         /*Run time version*/
         template<typename T>
         T mul_rsh(T a, T b, int shift)
         {
-            static const int bits=sizeof(T)*8;
-            static const T lowmask=(((T)1)<<(bits/2))-1;
             typedef typename std::make_unsigned<T>::type U;
-            U abs_a=a>=0?a:-a;
-            U abs_b=b>=0?b:-b;
-            U a1=abs_a>>bits/2;
-            U a2=abs_a&lowmask;
-            U b1=abs_b>>bits/2;
-            U b2=abs_b&lowmask;
-            U res=signed_rsh(a1*b1, shift-bits)+
-                  signed_rsh(a1*b2, shift-bits/2)+
-                  signed_rsh(a2*b1, shift-bits/2)+
-                  signed_rsh(a2*b2, shift);
-            return (a<0)^(b<0)?-((T)res):(T)res;
+            static const int bits=sizeof(T)*8;
+            static const int halfbits=sizeof(T)*4;
+            static const U lowmask=(((T)1)<<(halfbits))-1;
+            static const U highmask=lowmask<<(halfbits);
+            T a1=a>>(halfbits);
+            T a2=a-(a&highmask);
+            T b1=b>>(halfbits);
+            T b2=b-(b&highmask);
+            T a1b1=a1*b1;
+            T a1b2=a1*b2;
+            T a2b1=a2*b1;
+            T a2b2=a2*b2;
+            U high=a1b1+(a2b1>>(halfbits))+(a1b2>>(halfbits));
+
+            U low=a2b2;
+            high+=(low+=(a2b1<<halfbits))<a2b2;
+            U tmp=low;
+            high+=(low+=(a1b2<<halfbits))<tmp;
+            low=signed_rsh(low, shift);
+            low+=signed_lsh(high, bits-shift);
+            return low;
         }
     }
     //==========================================================================
